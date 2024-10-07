@@ -1,9 +1,11 @@
 import { roles } from 'src/common/enums/roles.enum';
 import { Match } from 'src/matches/entities/match.entity';
+import { Tournaments } from 'src/tournaments/entities/tournament.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -34,6 +36,9 @@ export class User {
 
   @OneToMany(() => Match, (match) => match.player2)
   matchesAsPlayer2: Match[];
+
+  @ManyToMany(() => Tournaments, (tournament) => tournament.users)
+  tournaments: Tournaments[];
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
