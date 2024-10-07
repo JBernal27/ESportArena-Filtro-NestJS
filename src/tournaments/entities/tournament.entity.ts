@@ -1,39 +1,37 @@
-import { roles } from 'src/common/enums/roles.enum';
 import { Match } from 'src/matches/entities/match.entity';
+import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('users')
-export class User {
+export class Tournaments {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   name: string;
 
-  @Column({ nullable: true, unique: true })
-  email: string;
+  @Column()
+  description: string;
 
   @Column()
-  password: string;
-
-  @Column()
-  role: roles;
+  award: number;
 
   @Column({ default: false })
   is_deleted: boolean;
 
-  @OneToMany(() => Match, (match) => match.player1)
-  matchesAsPlayer1: Match[];
+  @OneToMany(() => Match, (match) => match.tournament)
+  matches: Match[];
 
-  @OneToMany(() => Match, (match) => match.player2)
-  matchesAsPlayer2: Match[];
+  @ManyToMany(() => User, (user) => user.tournaments)
+  users: User[];
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
