@@ -2,16 +2,11 @@ import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import { Tournaments } from 'src/tournaments/entities/tournament.entity';
 import { CreateTournamentDto } from 'src/tournaments/dto/create-tournament.dto';
-import { UsersService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
 
 export default class CreateTournaments implements Seeder {
-  private userService: UsersService;
-
-  constructor(userService: UsersService) {
-    this.userService = userService;
-  }
-
   public async run(dataSource: DataSource): Promise<void> {
+    const userRepository = dataSource.getRepository(User);
     const tournamentRepository = dataSource.getRepository(Tournaments);
 
     const tournamentsData: CreateTournamentDto[] = [
@@ -39,7 +34,9 @@ export default class CreateTournaments implements Seeder {
 
         const users = await Promise.all(
           tournament.users.map(async (userId) => {
-            const user = await this.userService.findOne(userId);
+            const user = await userRepository.findOne({
+              where: { id: userId },
+            });
             if (!user) {
               console.error(
                 `User with ID ${userId} not found for tournament: ${tournament.name}`,

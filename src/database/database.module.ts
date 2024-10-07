@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfigService } from './connection-db.config';
 import CreateUsers from './seeders/users.seed';
 import { DataSource } from 'typeorm';
+import CreateTournaments from './seeders/tournaments.seed';
 
 @Module({
   imports: [
@@ -16,8 +17,11 @@ import { DataSource } from 'typeorm';
 export class DatabaseModule implements OnModuleInit {
   constructor(private readonly dataSource: DataSource) {}
   async onModuleInit() {
-    const roleSeeders = new CreateUsers();
-    await roleSeeders.run(this.dataSource);
+    const userSeeders = new CreateUsers();
+    await userSeeders.run(this.dataSource);
+
+    const tournamentSeeders = new CreateTournaments();
+    await tournamentSeeders.run(this.dataSource);
 
     console.log('The Database module starts correctly');
   }
