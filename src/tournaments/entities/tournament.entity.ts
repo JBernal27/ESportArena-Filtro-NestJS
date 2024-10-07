@@ -4,13 +4,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('users')
+@Entity('tournaments')
 export class Tournaments {
   @PrimaryGeneratedColumn()
   id: number;
@@ -31,6 +32,7 @@ export class Tournaments {
   matches: Match[];
 
   @ManyToMany(() => User, (user) => user.tournaments)
+  @JoinTable()
   users: User[];
 
   @CreateDateColumn({ type: 'timestamp' })

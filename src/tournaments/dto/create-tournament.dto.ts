@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateTournamentDto {
   @IsString()
@@ -9,4 +9,8 @@ export class CreateTournamentDto {
 
   @IsNumber()
   award: number;
+
+  @IsArray()
+  @IsOptional()
+  users: number[];
 }
