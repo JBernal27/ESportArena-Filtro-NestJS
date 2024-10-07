@@ -68,7 +68,7 @@ export class TournamentsService {
       relations: ['users'],
     });
     if (!tournament) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Tournament with ID ${id} not found`);
     }
     Object.assign(tournament, updateTournamentDto);
     return await this.tournamentsRepository.save(tournament);
@@ -79,7 +79,7 @@ export class TournamentsService {
       where: { id: id },
     });
     if (!tournament) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Tournament with ID ${id} not found`);
     }
     tournament.is_deleted = true;
     await this.tournamentsRepository.save(tournament);

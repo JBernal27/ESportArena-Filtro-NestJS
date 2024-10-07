@@ -20,17 +20,20 @@ export class Match {
   @ManyToOne(() => User, (user) => user.matchesAsPlayer2)
   player2: User;
 
-  @Column()
+  @Column({ default: 0 })
   player1Result: number;
 
-  @Column()
+  @Column({ default: 0 })
   player2Result: number;
 
-  @Column()
-  totalTime: number; // Tiempo total de la partida en segundos
+  @Column({ default: 0 })
+  totalTime: number;
 
   @ManyToOne(() => Tournaments, (tournament) => tournament.matches)
   tournament: Tournaments;
+
+  @Column({ default: false })
+  is_deleted: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
