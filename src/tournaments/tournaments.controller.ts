@@ -89,4 +89,19 @@ export class TournamentsController {
       addUserDto,
     );
   }
+
+  // @Get('filter')
+  // @ApiQuery({ name: 'tournamentName', required: true, type: String })
+  // @ApiQuery({ name: 'minScore', required: true, type: Number })
+  // @ApiResponse({ status: 200, description: 'Filtered tournaments.' })
+  // @ApiResponse({ status: 404, description: 'No tournaments found.' })
+  // filterTournaments(
+  //   @Query('tournamentName') tournamentName: string,
+  //   @Query('minScore') minScore: number,
+  // ) {
+  //   return this.tournamentsService.findByTournamentAndMinScore(
+  //     tournamentName,
+  //     minScore,
+  //   );
+  // }
 }

@@ -101,4 +101,13 @@ export class TournamentsService {
     );
     return scoreboard;
   }
+
+  // async findByTournamentAndMinScore(tournamentId: number, minScore: number): Promise<Tournament[]> {
+  //   return await this.tournamentsRepository.find({
+  //     where: {
+  //       id: tournamentId,
+  //       score: { $gte: minScore },
+  //     },
+  //   });
+  // }
 }
