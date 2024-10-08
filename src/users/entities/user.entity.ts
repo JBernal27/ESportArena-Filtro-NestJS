@@ -1,11 +1,10 @@
 import { roles } from 'src/common/enums/roles.enum';
 import { Match } from 'src/matches/entities/match.entity';
-import { Tournaments } from 'src/tournaments/entities/tournament.entity';
+import { Scoreboard } from 'src/scoreboards/entities/scoreboard.entity'; // Asegúrate de importar correctamente
 import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -37,8 +36,8 @@ export class User {
   @OneToMany(() => Match, (match) => match.player2)
   matchesAsPlayer2: Match[];
 
-  @ManyToMany(() => Tournaments, (tournament) => tournament.users)
-  tournaments: Tournaments[];
+  @OneToMany(() => Scoreboard, (scoreboard) => scoreboard.user)
+  scoreboards: Scoreboard[];
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;

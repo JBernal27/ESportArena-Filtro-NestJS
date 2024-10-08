@@ -1,11 +1,9 @@
 import { Match } from 'src/matches/entities/match.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Scoreboard } from 'src/scoreboards/entities/scoreboard.entity'; // Asegúrate de importar correctamente
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -31,9 +29,8 @@ export class Tournaments {
   @OneToMany(() => Match, (match) => match.tournament)
   matches: Match[];
 
-  @ManyToMany(() => User, (user) => user.tournaments)
-  @JoinTable()
-  users: User[];
+  @OneToMany(() => Scoreboard, (scoreboard) => scoreboard.tournament)
+  scoreboards: Scoreboard[];
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;

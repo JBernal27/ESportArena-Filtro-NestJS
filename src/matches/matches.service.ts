@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,6 +12,8 @@ import { TournamentsService } from 'src/tournaments/tournaments.service';
 import { UsersService } from 'src/users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MatchResultDto } from './dto/post-match-result.dto';
+import { Scoreboard } from 'src/scoreboards/entities/scoreboard.entity';
+import { ScoreboardsService } from 'src/scoreboards/scoreboards.service';
 
 @Injectable()
 export class MatchesService {
@@ -19,6 +22,7 @@ export class MatchesService {
     private readonly matchesRepository: Repository<Match>,
     private readonly tournamentService: TournamentsService,
     private readonly userService: UsersService,
+    private readonly scoreboardService: ScoreboardsService,
   ) {}
 
   async create(createMatchDto: CreateMatchDto) {
@@ -50,11 +54,17 @@ export class MatchesService {
       );
     }
 
-    const isPlayer1InTournament = tournament.users.some(
-      (player) => player.id === createMatchDto.player1,
+    const scoreboards: Scoreboard[] =
+      await this.scoreboardService.findByTournament(tournament.id);
+    if (!scoreboards) {
+      throw new NotFoundException('Scoreboard not found for this tournament');
+    }
+
+    const isPlayer1InTournament = scoreboards.some(
+      (scoreboard) => scoreboard.user.id === createMatchDto.player1,
     );
-    const isPlayer2InTournament = tournament.users.some(
-      (player) => player.id === createMatchDto.player2,
+    const isPlayer2InTournament = scoreboards.some(
+      (scoreboard) => scoreboard.user.id === createMatchDto.player2,
     );
 
     if (!isPlayer1InTournament) {
@@ -100,13 +110,68 @@ export class MatchesService {
   async update(id: number, updateMatchDto: UpdateMatchDto) {
     const match = await this.matchesRepository.findOne({
       where: { id: id, is_deleted: false },
-      relations: ['tournaments'],
+      relations: ['player1', 'player2', 'tournament'],
     });
+
     if (!match) {
       throw new NotFoundException(`Match with ID ${id} not found`);
     }
+
+    const previousPlayer1Result = match.player1Result;
+    const previousPlayer2Result = match.player2Result;
+
+    const player1Id = match.player1.id;
+    const player2Id = match.player2.id;
+
+    if (previousPlayer1Result === previousPlayer2Result) {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player1Id,
+        pointsToAdd: -1,
+      });
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player2Id,
+        pointsToAdd: -1,
+      });
+    } else if (previousPlayer1Result > previousPlayer2Result) {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player1Id,
+        pointsToAdd: -3,
+      });
+    } else {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player2Id,
+        pointsToAdd: -3,
+      });
+    }
+
     Object.assign(match, updateMatchDto);
-    return await this.matchesRepository.save(match);
+    await this.matchesRepository.save(match);
+
+    const updatedPlayer1Result = match.player1Result;
+    const updatedPlayer2Result = match.player2Result;
+
+    if (updatedPlayer1Result === updatedPlayer2Result) {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player1Id,
+        pointsToAdd: 1,
+      });
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player2Id,
+        pointsToAdd: 1,
+      });
+    } else if (updatedPlayer1Result > updatedPlayer2Result) {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player1Id,
+        pointsToAdd: 3,
+      });
+    } else {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player2Id,
+        pointsToAdd: 3,
+      });
+    }
+
+    return match;
   }
 
   async remove(id: number) {
@@ -123,17 +188,49 @@ export class MatchesService {
   async updateMatchResults(id: number, matchResultDto: MatchResultDto) {
     const match = await this.matchesRepository.findOne({
       where: { id: id, is_deleted: false },
-      relations: ['users'],
+      relations: ['player1', 'player2', 'tournament'],
     });
 
     if (!match) {
       throw new NotFoundException(`Match with ID ${id} not found.`);
     }
 
+    if (match.player1Result !== null || match.player2Result !== null) {
+      throw new ForbiddenException(
+        `Match with ID ${id} already has a result, if you need to change contact the administrator`,
+      );
+    }
+
     match.player1Result = matchResultDto.player1Result ?? match.player1Result;
     match.player2Result = matchResultDto.player2Result ?? match.player2Result;
     match.totalTime = matchResultDto.totalTime ?? match.totalTime;
 
-    return await this.matchesRepository.save(match);
+    await this.matchesRepository.save(match);
+
+    const player1Id = match.player1.id;
+    const player2Id = match.player2.id;
+
+    if (match.player1Result > match.player2Result) {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player1Id,
+        pointsToAdd: 3,
+      });
+    } else if (match.player2Result > match.player1Result) {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player2Id,
+        pointsToAdd: 3,
+      });
+    } else {
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player1Id,
+        pointsToAdd: 1,
+      });
+      await this.scoreboardService.update(match.tournament.id, {
+        userId: player2Id,
+        pointsToAdd: 1,
+      });
+    }
+
+    return match;
   }
 }

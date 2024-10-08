@@ -6,10 +6,12 @@ import { Tournaments } from './entities/tournament.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { Match } from 'src/matches/entities/match.entity';
+import { Scoreboard } from 'src/scoreboards/entities/scoreboard.entity';
+import { ScoreboardsService } from 'src/scoreboards/scoreboards.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Tournaments, User, Match])],
+  imports: [TypeOrmModule.forFeature([Tournaments, User, Match, Scoreboard])],
   controllers: [TournamentsController],
-  providers: [TournamentsService, UsersService],
+  providers: [TournamentsService, UsersService, ScoreboardsService],
 })
 export class TournamentsModule {}
