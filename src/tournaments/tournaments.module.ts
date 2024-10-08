@@ -8,10 +8,16 @@ import { UsersService } from 'src/users/users.service';
 import { Match } from 'src/matches/entities/match.entity';
 import { Scoreboard } from 'src/scoreboards/entities/scoreboard.entity';
 import { ScoreboardsService } from 'src/scoreboards/scoreboards.service';
+import { MatchesService } from 'src/matches/matches.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Tournaments, User, Match, Scoreboard])],
   controllers: [TournamentsController],
-  providers: [TournamentsService, UsersService, ScoreboardsService],
+  providers: [
+    TournamentsService,
+    UsersService,
+    ScoreboardsService,
+    MatchesService,
+  ],
 })
 export class TournamentsModule {}

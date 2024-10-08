@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { TournamentsService } from './tournaments.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
@@ -17,6 +19,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 @ApiTags('tournaments') // Agrupa las rutas bajo 'tournaments'
@@ -34,10 +37,49 @@ export class TournamentsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all tournaments' })
+  @ApiOperation({
+    summary: 'Get all tournaments with optional filters and pagination',
+  })
+  @ApiQuery({ name: 'tournamentId', required: false, type: Number }) // Opcional
+  @ApiQuery({ name: 'minScore', required: false, type: Number }) // Opcional
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of items per page',
+  })
   @ApiResponse({ status: 200, description: 'List of tournaments.' })
-  findAll() {
-    return this.tournamentsService.findAll();
+  @ApiResponse({ status: 400, description: 'Invalid parameters.' })
+  findAll(
+    @Query('tournamentId', ParseIntPipe) tournamentId?: number,
+    @Query('minScore', ParseIntPipe) minScore?: number,
+    @Query('page', ParseIntPipe) page?: number,
+    @Query('limit', ParseIntPipe) limit?: number,
+  ) {
+    const paginationOptions = {
+      page: page ? Math.max(1, page) : 1,
+      limit: limit ? Math.min(100, limit) : 10,
+    };
+
+    return this.tournamentsService.findAll(
+      tournamentId,
+      minScore,
+      paginationOptions,
+    );
+  }
+
+  @Get('automatch/:id')
+  @ApiOperation({
+    summary: 'Automatch all the users of the tournaments',
+  })
+  automatch(@Param('id', ParseIntPipe) id: number) {
+    return this.tournamentsService.automatch(id);
   }
 
   @Get(':id')
@@ -45,7 +87,7 @@ export class TournamentsController {
   @ApiParam({ name: 'id', description: 'ID of the tournament' })
   @ApiResponse({ status: 200, description: 'Tournament found.' })
   @ApiResponse({ status: 404, description: 'Tournament not found.' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: string) {
     return this.tournamentsService.findOne(+id);
   }
 
@@ -56,7 +98,7 @@ export class TournamentsController {
   @ApiResponse({ status: 404, description: 'Tournament not found.' })
   @ApiBody({ type: UpdateTournamentDto })
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: string,
     @Body() updateTournamentDto: UpdateTournamentDto,
   ) {
     return this.tournamentsService.update(+id, updateTournamentDto);
@@ -67,7 +109,7 @@ export class TournamentsController {
   @ApiParam({ name: 'id', description: 'ID of the tournament' })
   @ApiResponse({ status: 200, description: 'Tournament deleted successfully.' })
   @ApiResponse({ status: 404, description: 'Tournament not found.' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseIntPipe) id: string) {
     return this.tournamentsService.remove(+id);
   }
 
@@ -81,7 +123,7 @@ export class TournamentsController {
   @ApiResponse({ status: 404, description: 'Tournament not found.' })
   @ApiBody({ type: AddUserToTournamentDto })
   async addUserToTournament(
-    @Param('id') tournamentId: string,
+    @Param('id', ParseIntPipe) tournamentId: string,
     @Body() addUserDto: AddUserToTournamentDto,
   ) {
     return this.tournamentsService.addUserToTournament(
@@ -89,19 +131,4 @@ export class TournamentsController {
       addUserDto,
     );
   }
-
-  // @Get('filter')
-  // @ApiQuery({ name: 'tournamentName', required: true, type: String })
-  // @ApiQuery({ name: 'minScore', required: true, type: Number })
-  // @ApiResponse({ status: 200, description: 'Filtered tournaments.' })
-  // @ApiResponse({ status: 404, description: 'No tournaments found.' })
-  // filterTournaments(
-  //   @Query('tournamentName') tournamentName: string,
-  //   @Query('minScore') minScore: number,
-  // ) {
-  //   return this.tournamentsService.findByTournamentAndMinScore(
-  //     tournamentName,
-  //     minScore,
-  //   );
-  // }
 }

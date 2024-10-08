@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
@@ -76,5 +77,22 @@ export class MatchesController {
   @ApiBody({ type: MatchResultDto })
   result(@Param('id') id: string, @Body() matchResultDto: MatchResultDto) {
     return this.matchesService.updateMatchResults(+id, matchResultDto);
+  }
+
+  @Get('tournament/:tournamentId')
+  @ApiOperation({ summary: 'Get matches by tournament ID' })
+  @ApiParam({ name: 'tournamentId', description: 'ID of the tournament' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of matches for the tournament.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Matches not found for the tournament.',
+  })
+  getMatchesByTournament(
+    @Param('tournamentId', ParseIntPipe) tournamentId: number,
+  ) {
+    return this.matchesService.findMatchesByTournament(tournamentId);
   }
 }

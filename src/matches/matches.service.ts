@@ -8,19 +8,20 @@ import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { Repository } from 'typeorm';
 import { Match } from './entities/match.entity';
-import { TournamentsService } from 'src/tournaments/tournaments.service';
 import { UsersService } from 'src/users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MatchResultDto } from './dto/post-match-result.dto';
 import { Scoreboard } from 'src/scoreboards/entities/scoreboard.entity';
 import { ScoreboardsService } from 'src/scoreboards/scoreboards.service';
+import { Tournaments } from 'src/tournaments/entities/tournament.entity';
 
 @Injectable()
 export class MatchesService {
   constructor(
     @InjectRepository(Match)
     private readonly matchesRepository: Repository<Match>,
-    private readonly tournamentService: TournamentsService,
+    @InjectRepository(Tournaments)
+    private readonly tournamentRepository: Repository<Tournaments>,
     private readonly userService: UsersService,
     private readonly scoreboardService: ScoreboardsService,
   ) {}
@@ -44,9 +45,9 @@ export class MatchesService {
       );
     }
 
-    const tournament = await this.tournamentService.findOne(
-      createMatchDto.tournament,
-    );
+    const tournament = await this.tournamentRepository.findOne({
+      where: { id: createMatchDto.tournament },
+    });
 
     if (!tournament) {
       throw new NotFoundException(
@@ -232,5 +233,14 @@ export class MatchesService {
     }
 
     return match;
+  }
+
+  async findMatchesByTournament(tournamentId: number) {
+    const matches = await this.matchesRepository.find({
+      where: { tournament: { id: tournamentId } },
+      relations: ['player1', 'player2'],
+    });
+
+    return matches;
   }
 }

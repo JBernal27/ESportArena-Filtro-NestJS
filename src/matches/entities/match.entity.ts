@@ -20,10 +20,10 @@ export class Match {
   @ManyToOne(() => User, (user) => user.matchesAsPlayer2)
   player2: User;
 
-  @Column()
+  @Column({ nullable: true })
   player1Result: number;
 
-  @Column()
+  @Column({ nullable: true })
   player2Result: number;
 
   @Column({ default: 0 })
